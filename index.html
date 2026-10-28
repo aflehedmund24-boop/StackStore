@@ -1,0 +1,516 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackStore | Inventory Management</title>
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --navy: #17233c;
+            --orange: #ff7a36;
+            --muted: #778197;
+            --white: #ffffff;
+            --border: #e6eaf1;
+            --green: #16865b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--navy);
+        }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        aside {
+            width: 235px;
+            background: var(--navy);
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 23px;
+            font-weight: 800;
+            margin: 0 0 8px;
+        }
+
+        .brand span { color: var(--orange); }
+
+        .subtitle {
+            color: #aeb8cb;
+            font-size: 12px;
+            margin-bottom: 38px;
+        }
+
+        .nav-label {
+            color: #8e9bb2;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            margin: 24px 10px 10px;
+        }
+
+        .nav-item {
+            padding: 12px;
+            border-radius: 9px;
+            color: #d4dbea;
+            margin-bottom: 7px;
+            font-size: 14px;
+        }
+
+        .nav-item.active {
+            background: #2b3852;
+            color: white;
+            border-left: 3px solid var(--orange);
+        }
+
+        main { flex: 1; min-width: 0; }
+
+        header {
+            background: white;
+            padding: 24px 34px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        header h1 { margin: 0; font-size: 23px; }
+        header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+        .status {
+            background: #e5f7ef;
+            color: var(--green);
+            border-radius: 20px;
+            padding: 9px 13px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .content { padding: 30px 34px; max-width: 1450px; margin: auto; }
+
+        .welcome { margin-bottom: 25px; }
+        .welcome h2 { margin: 0 0 7px; font-size: 25px; }
+        .welcome p { margin: 0; color: var(--muted); font-size: 14px; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 3px 12px #17233c06;
+        }
+
+        .stat-label { color: var(--muted); font-size: 13px; }
+        .stat-value { font-size: 30px; font-weight: 750; margin: 13px 0 5px; }
+        .stat-note { color: var(--muted); font-size: 12px; }
+
+        .columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card h3 { margin: 0 0 7px; font-size: 17px; }
+        .description { color: var(--muted); font-size: 13px; margin: 0 0 22px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+            margin: 15px 0 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dce2ec;
+            border-radius: 8px;
+            background: white;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #ff7a3640;
+            border-color: var(--orange);
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .primary { background: var(--orange); color: white; }
+        .secondary { background: #edf0f6; color: var(--navy); }
+        .full { width: 100%; margin-top: 20px; }
+
+        .notice { font-size: 13px; margin-top: 12px; min-height: 18px; }
+        .notice.error { color: #c0392b; }
+        .notice.success { color: var(--green); }
+
+        .stack-area {
+            background: #f8f9fc;
+            border: 1px dashed #d8dfeb;
+            border-radius: 12px;
+            padding: 18px;
+            min-height: 160px;
+        }
+
+        .stack-empty {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 40px 8px;
+        }
+
+        .stack-box {
+            background: white;
+            border: 1px solid #e0e6ef;
+            border-left: 4px solid var(--orange);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stack-box:last-child { margin-bottom: 0; }
+        .stack-box.top { border-color: var(--green); background: #f1fbf6; }
+        .box-title { font-weight: 750; font-size: 14px; }
+        .box-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+        .top-tag { color: var(--green); font-size: 10px; font-weight: 800; margin-bottom: 7px; }
+
+        .stack-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stack-count { color: var(--muted); font-size: 12px; }
+
+        .search-row { display: flex; gap: 8px; }
+        .search-row input { flex: 1; min-width: 0; }
+
+        .activity { margin-top: 20px; }
+        .activity-list { list-style: none; padding: 0; margin: 15px 0 0; }
+        .activity-list li {
+            border-top: 1px solid var(--border);
+            padding: 12px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .activity-time { color: var(--muted); font-size: 11px; display: block; }
+
+        .footer { text-align: center; padding: 25px; color: var(--muted); font-size: 12px; }
+
+        @media (max-width: 950px) {
+            .columns { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 650px) {
+            aside { display: none; }
+            header { padding: 20px; }
+            .content { padding: 22px 16px; }
+            header h1 { font-size: 19px; }
+            .status { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside>
+        <div class="brand">Stack<span>Store</span></div>
+        <div class="subtitle">LIFO Inventory Management</div>
+
+        <div class="nav-label">Workspace</div>
+        <div class="nav-item active">▦ &nbsp; Dashboard</div>
+        <div class="nav-item">▤ &nbsp; Inventory Stack</div>
+        <div class="nav-item">↻ &nbsp; Retrieval</div>
+        <div class="nav-item">◷ &nbsp; Activity History</div>
+
+        <div class="nav-label">Data Structure</div>
+        <div class="nav-item">Last In, First Out</div>
+    </aside>
+
+    <main>
+        <header>
+            <div>
+                <h1>Inventory Dashboard</h1>
+                <p>Manage boxed electronics using the LIFO principle.</p>
+            </div>
+            <div class="status">● Local preview</div>
+        </header>
+
+        <div class="content">
+            <section class="welcome">
+                <h2>Welcome to StackStore 👋</h2>
+                <p>Add, find and retrieve stored boxes while respecting stack order.</p>
+            </section>
+
+            <section class="stats">
+                <div class="card">
+                    <div class="stat-label">Boxes in Inventory</div>
+                    <div class="stat-value" id="totalBoxes">0</div>
+                    <div class="stat-note">Currently stored boxes</div>
+                </div>
+                <div class="card">
+                    <div class="stat-label">Retrievals Completed</div>
+                    <div class="stat-value" id="totalRetrievals">0</div>
+                    <div class="stat-note">Boxes removed from the top</div>
+                </div>
+                <div class="card">
+                    <div class="stat-label">Current Top Box</div>
+                    <div class="stat-value" id="topBox" style="font-size:20px">None</div>
+                    <div class="stat-note">Next box available for retrieval</div>
+                </div>
+            </section>
+
+            <section class="columns">
+                <div class="card">
+                    <h3>Add a box to inventory</h3>
+                    <p class="description">New boxes are placed on top of the stack (PUSH).</p>
+
+                    <form id="addForm">
+                        <label for="boxId">Unique Box ID</label>
+                        <input id="boxId" required maxlength="30" placeholder="e.g. BOX-001">
+
+                        <label for="productName">Product name</label>
+                        <input id="productName" required maxlength="80" placeholder="e.g. Wireless Keyboard">
+
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="">Choose a category</option>
+                            <option>Computer Accessories</option>
+                            <option>Laptops & Computers</option>
+                            <option>Printers</option>
+                            <option>Networking Equipment</option>
+                            <option>Other Electronics</option>
+                        </select>
+
+                        <label for="quantity">Quantity inside box</label>
+                        <input id="quantity" type="number" min="1" max="100000" value="1" required>
+
+                        <button class="btn primary full" type="submit">＋ Add Box to Stack</button>
+                        <div id="formNotice" class="notice" role="status"></div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Current inventory stack</h3>
+                    <p class="description">The top box must be retrieved first (POP).</p>
+
+                    <div id="stackArea" class="stack-area">
+                        <div class="stack-empty">Your stack is empty.<br>Add a box to get started.</div>
+                    </div>
+
+                    <div class="stack-footer">
+                        <span id="stackCount" class="stack-count">0 boxes stored</span>
+                        <button class="btn primary" id="retrieveBtn" type="button">Retrieve Top Box</button>
+                    </div>
+                    <div id="retrieveNotice" class="notice" role="status"></div>
+                </div>
+            </section>
+
+            <section class="card activity">
+                <h3>Find a stored box</h3>
+                <p class="description">Search by box ID or product name. Search will not change the stack.</p>
+                <form id="searchForm" class="search-row">
+                    <input id="searchTerm" placeholder="Enter box ID or product name" required>
+                    <button class="btn secondary" type="submit">Search</button>
+                </form>
+                <div id="searchResult" class="notice" role="status"></div>
+            </section>
+
+            <section class="card activity">
+                <h3>Recent activity</h3>
+                <p class="description">The latest inventory actions appear here.</p>
+                <ul id="activityList" class="activity-list">
+                    <li>No activity yet. Add a box to begin.</li>
+                </ul>
+            </section>
+        </div>
+
+        <div class="footer">StackStore · A practical demonstration of the stack data structure (LIFO)</div>
+    </main>
+</div>
+
+<script>
+    const inventory = [];
+    const activity = [];
+    let retrievalCount = 0;
+
+    const addForm = document.getElementById("addForm");
+    const formNotice = document.getElementById("formNotice");
+    const retrieveNotice = document.getElementById("retrieveNotice");
+
+    function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    function recordActivity(message) {
+        activity.unshift({
+            message,
+            time: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            })
+        });
+        if (activity.length > 6) activity.pop();
+        renderActivity();
+    }
+
+    function renderActivity() {
+        const list = document.getElementById("activityList");
+
+        if (activity.length === 0) {
+            list.innerHTML = "<li>No activity yet. Add a box to begin.</li>";
+            return;
+        }
+
+        list.innerHTML = activity.map(item => `
+            <li>
+                ${escapeHTML(item.message)}
+                <span class="activity-time">${escapeHTML(item.time)}</span>
+            </li>
+        `).join("");
+    }
+
+    function renderStack() {
+        const area = document.getElementById("stackArea");
+
+        document.getElementById("totalBoxes").textContent = inventory.length;
+        document.getElementById("totalRetrievals").textContent = retrievalCount;
+        document.getElementById("topBox").textContent =
+            inventory.length ? inventory[inventory.length - 1].id : "None";
+        document.getElementById("stackCount").textContent =
+            `${inventory.length} box${inventory.length === 1 ? "" : "es"} stored`;
+        document.getElementById("retrieveBtn").disabled = inventory.length === 0;
+        document.getElementById("retrieveBtn").style.opacity =
+            inventory.length === 0 ? "0.5" : "1";
+
+        if (inventory.length === 0) {
+            area.innerHTML = '<div class="stack-empty">Your stack is empty.<br>Add a box to get started.</div>';
+            return;
+        }
+
+        area.innerHTML = inventory.slice().reverse().map((box, index) => {
+            const isTop = index === 0;
+            return `
+                <div class="stack-box ${isTop ? "top" : ""}">
+                    ${isTop ? '<div class="top-tag">TOP OF STACK · NEXT TO RETRIEVE</div>' : ""}
+                    <div class="box-title">${escapeHTML(box.name)}</div>
+                    <div class="box-meta">
+                        ID: ${escapeHTML(box.id)} · ${escapeHTML(box.category)}
+                        · Quantity: ${box.quantity}
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    addForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const id = document.getElementById("boxId").value.trim();
+        const name = document.getElementById("productName").value.trim();
+        const category = document.getElementById("category").value;
+        const quantity = Number(document.getElementById("quantity").value);
+
+        if (!id || !name || !category || !Number.isInteger(quantity) || quantity < 1) {
+            formNotice.textContent = "Please enter valid information in every field.";
+            formNotice.className = "notice error";
+            return;
+        }
+
+        if (inventory.some(box => box.id.toLowerCase() === id.toLowerCase())) {
+            formNotice.textContent = "That box ID already exists. Use a unique ID.";
+            formNotice.className = "notice error";
+            return;
+        }
+
+        inventory.push({ id, name, category, quantity });
+        recordActivity(`Added ${name} (${id}) to the top of the stack.`);
+        renderStack();
+
+        formNotice.textContent = `${name} was successfully added to the stack.`;
+        formNotice.className = "notice success";
+        addForm.reset();
+        document.getElementById("quantity").value = 1;
+        document.getElementById("boxId").focus();
+    });
+
+    document.getElementById("retrieveBtn").addEventListener("click", () => {
+        retrieveNotice.className = "notice";
+
+        if (inventory.length === 0) {
+            retrieveNotice.textContent = "The stack is empty. There is nothing to retrieve.";
+            retrieveNotice.className = "notice error";
+            return;
+        }
+
+        const removed = inventory.pop();
+        retrievalCount++;
+        recordActivity(`Retrieved ${removed.name} (${removed.id}) from the top of the stack.`);
+        renderStack();
+
+        retrieveNotice.textContent = `Retrieved ${removed.name} (${removed.id}) successfully.`;
+        retrieveNotice.className = "notice success";
+    });
+
+    document.getElementById("searchForm").addEventListener("submit", event => {
+        event.preventDefault();
+
+        const term = document.getElementById("searchTerm").value.trim().toLowerCase();
+        const result = document.getElementById("searchResult");
+
+        const index = inventory.findIndex(box =>
+            box.id.toLowerCase() === term || box.name.toLowerCase().includes(term)
+        );
+
+        if (index === -1) {
+            result.textContent = "No matching box was found in the current stack.";
+            result.className = "notice error";
+            return;
+        }
+
+        const box = inventory[index];
+        const positionFromTop = inventory.length - index;
+
+        result.textContent = `${box.name} (${box.id}) found. Position: ${positionFromTop} from the top.` +
+            (positionFromTop === 1 ? " This box is at the top and can be retrieved now." :
+            " This box is below the top; retrieve the boxes above it first.");
+        result.className = "notice success";
+    });
+
+    renderStack();
+</script>
+</body>
+</html>
